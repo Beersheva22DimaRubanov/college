@@ -15,6 +15,7 @@ import telran.spring.college.entity.Lecturer;
 import telran.spring.college.entity.Mark;
 import telran.spring.college.entity.Student;
 import telran.spring.college.entity.Subject;
+import telran.spring.college.entity.SubjectType;
 import telran.spring.college.repo.*;
 import telran.spring.exceptions.NotFoundException;
 
@@ -153,13 +154,20 @@ public class CollegeServiceImpl implements CollegeService {
 	@Override
 	@Transactional(readOnly = false)
 	public List<PersonDto> removeStudentsLessMarks(int nMarks) {
-		List<Student> students = studentRepo.findStudentsLessMark(nMarks);
-		
-		students.forEach(s -> {
-			
-			log.debug("{} students are going to be deleted", s.getId());
-			studentRepo.delete(s);
-		});
-		return students.stream().map(Student::build).toList();
+		List<Student> studentForRemoving = studentRepo.findStudentsLessMarks(nMarks);
+		studentRepo.removeStudentsLessMark(nMarks);
+		return studentForRemoving.stream().map(Student::build).toList();
+	}
+
+	@Override
+	public List<MarkDto> marksStudentSubject(long studentId, String subjectId) {
+		List<Mark> marks = markRepo.findByStudentIdAndSubjectId(studentId, subjectId);
+		return marks.stream().map(Mark::build).toList();
+	}
+
+	@Override
+	public List<IdName> studentMarksSubject(SubjectType type, int mark) {
+
+		return studentRepo.findDistinctByMarksSubjectTypeAndMarkGreaterThanOrderById(type, mark);
 	}
 }
